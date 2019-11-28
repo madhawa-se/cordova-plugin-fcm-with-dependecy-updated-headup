@@ -8,14 +8,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 import android.util.Log;
 import java.util.Map;
 import java.util.HashMap;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-
+import com.uvemobile.R;
 /**
  * Created by Felipe Echanique on 08/06/2016.
  */
@@ -65,7 +65,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         
         Log.d(TAG, "\tNotification Data: " + data.toString());
         FCMPlugin.sendPushPayload( data );
-        //sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData());
+        sendNotificationNew(remoteMessage.getNotification().getTitle());
     }
     // [END receive_message]
 
@@ -74,6 +74,49 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      *
      * @param messageBody FCM message body received.
      */
+    private void sendNotificationNew(String title) {
+        Intent intent = new Intent(this, FCMPluginActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(getApplicationInfo().icon)
+                .setContentTitle(title)
+                .setContentText("ccxxx")
+                .setAutoCancel(true)
+                .setSound(defaultSoundUri)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+                Log.d(TAG, "\tNotification setup");
+
+        // Since android Oreo notification channel is needed.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "MY_NOTIFICATION_CHANNEL_NAME", importance);
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.enableVibration(true);
+            notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
+            notificationManager.createNotificationChannel(notificationChannel);
+
+
+            // for default notification channel
+            String channelName = getString(R.string.fcm_fallback_notification_channel_label);
+            NotificationChannel channel = new NotificationChannel("fcm_fallback_notification_channel", channelName, NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+    }
+
+
     private void sendNotification(String title, String messageBody, Map<String, Object> data) {
         Intent intent = new Intent(this, FCMPluginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -90,33 +133,31 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setContentText(messageBody)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                
-        // Since android Oreo notification channel is needed.
 
-        NotificationChannel channel = new NotificationChannel("my_channel_01",
-          "Channel human readable title", 
-          NotificationManager.IMPORTANCE_DEFAULT);
-       notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
+                NotificationChannel channel = new NotificationChannel("mychannel",
+                "MY_NOTIFICATION_CHANNEL", 
+                NotificationManager.IMPORTANCE_DEFAULT);
+                notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
+                Log.d(TAG, "\tNotification setup");
 
-          notificationManager.createNotificationChannel(channel);
-        if (true || android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            // int importance = NotificationManager.IMPORTANCE_HIGH;
-            // NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "MY_NOTIFICATION_CHANNEL_NAME", importance);
-            // notificationChannel.enableLights(true);
-            // notificationChannel.setLightColor(Color.RED);
-            // notificationChannel.enableVibration(true);
-            // notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
-            // notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
-            // notificationManager.createNotificationChannel(notificationChannel);
-         
-            // String channelName = getString(R.string.fcm_fallback_notification_channel_label);
-            // NotificationChannel channel = new NotificationChannel("fcm_fallback_notification_channel", channelName, NotificationManager.IMPORTANCE_HIGH);
-            // notificationManager.createNotificationChannel(channel);
-        }
+                notificationManager.createNotificationChannel(channel);
+
+        // // Since android Oreo notification channel is needed.
+        // if (true || android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        //     int importance = NotificationManager.IMPORTANCE_HIGH;
+        //     NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "MY_NOTIFICATION_CHANNEL_NAME", importance);
+        //     notificationChannel.enableLights(true);
+        //     notificationChannel.setLightColor(Color.RED);
+        //     notificationChannel.enableVibration(true);
+        //     notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+        //     notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
+        //     notificationManager.createNotificationChannel(notificationChannel);
+        // }
 
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
     }
