@@ -40,6 +40,20 @@ FCMPlugin.prototype.getToken = function(success, error) {
   exec(success, error, "FCMPlugin", "getToken", []);
 };
 
+// GET APNS TOKEN //
+FCMPlugin.prototype.getAPNSToken = function(success, error) {
+  if (cordova.platformId !== "ios") {
+    success(null);
+    return;
+  }
+  exec(success, error, "FCMPlugin", "getAPNSToken", []);
+};
+
+// CLEAR ALL NOTIFICATIONS //
+FCMPlugin.prototype.clearAllNotifications = function(success, error) {
+  exec(success, error, "FCMPlugin", "clearAllNotifications", []);
+};
+
 // DEFAULT NOTIFICATION CALLBACK //
 FCMPlugin.prototype.onNotificationReceived = function(payload) {
   console.log("Received push notification");
